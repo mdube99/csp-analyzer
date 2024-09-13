@@ -58,7 +58,7 @@ def text_out(
     init()
 
     colors = {
-        "information": (Fore.BLUE, "+" + Style.RESET_ALL),
+        "information": (Fore.BLUE),
         "medium": (Fore.YELLOW),
         "possible medium": (Fore.LIGHTRED_EX),
         "high": (Fore.RED),
