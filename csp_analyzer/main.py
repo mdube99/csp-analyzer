@@ -1,16 +1,31 @@
 import argparse
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 from bs4 import BeautifulSoup
 from time import sleep
 from colorama import init, Fore, Style
 
 parser = argparse.ArgumentParser("""csp-analyzer https://example.com""")
 parser.add_argument("target", action="store", help="https://example.com")
+parser.add_argument(
+    "-B",
+    "--browser",
+    action="store",
+    help="Browser you want to use",
+    default="firefox",
+    choices=["firefox", "chrome"],
+    required=False,
+)
 args = parser.parse_args()
 
-op = webdriver.ChromeOptions()
-op.add_argument("headless")
-driver = webdriver.Chrome(options=op)
+if args.browser == "chrome":
+    op = webdriver.ChromeOptions()
+    op.add_argument("headless")
+    driver = webdriver.Chrome(options=op)
+else:
+    options = Options()
+    options.add_argument("--headless")
+    driver = webdriver.Firefox(options=options)
 
 
 def get_csp_info(target, sleep_time=2):
