@@ -43,25 +43,33 @@ def get_csp_info(target, sleep_time=2):
         print("[-] No Content Security Policy on target site")
         quit()
 
-    col_values = soup.find_all("div", {"class": "col value"})
-    description_divs = soup.find("div", {"class": "directive"})
-    description_tags = description_divs.find_all("li")
-
-    data_tooltip_value_divs = soup.find_all("div", {"class": "col icon"})
+    # Find all directives
+    directives = soup.find_all("div", class_="directive")
 
     tooltip_texts = []
-    for div in data_tooltip_value_divs:
-        tooltip_text = div.get("data-tooltip")
-        if tooltip_text is not None:
-            tooltip_texts.append(tooltip_text)
-
-    values = []
-    for div in col_values:
-        values.append(div.text.strip())
-
     descriptions = []
-    for li in description_tags:
-        descriptions.append(li.text.strip())
+    values = []
+    # Extract information
+    for directive in directives:
+        # Find tooltip and text
+        tooltip = directive.find("div", {"data-tooltip": True})["data-tooltip"]
+        value = directive.find("b")
+        desc_tags = directive.find("li")
+
+        if desc_tags is None:
+            desc_tags = " "
+        else:
+            desc_tags = desc_tags.text
+
+        if value is None:
+            value = " "
+        else:
+            value = value.text
+
+        descriptions.append(desc_tags)
+        values.append(value)
+        tooltip_texts.append(tooltip)
+
     return values, descriptions, tooltip_texts
 
 
@@ -79,6 +87,7 @@ def text_out(
         "high": (Fore.RED),
         "possible high": (Fore.LIGHTRED_EX),
         "syntax error": (Fore.MAGENTA),
+        "good": (Fore.GREEN),
     }
 
     color = colors[severity]
@@ -86,7 +95,7 @@ def text_out(
     output: str = (
         f"[{color}+{Style.RESET_ALL}] "
         + color
-        + level.ljust(7)
+        + level.ljust(12)
         + Style.RESET_ALL
         + "|".ljust(3)
         + policy.ljust(max_length)  # adjust width as needed
@@ -120,6 +129,8 @@ def main():
     csp_values = {}
     csp_values["High"] = []
     csp_values["Medium"] = []
+    csp_values["information"] = []
+    csp_values["good"] = []
 
     severity_mapping = {
         "high": ("High", "High"),
@@ -127,6 +138,8 @@ def main():
             "Medium",
             "Medium",
         ),
+        "information": ("information", "information"),
+        "good": ("good", "good"),
     }
 
     for count, tooltip in enumerate(tooltip_texts):
